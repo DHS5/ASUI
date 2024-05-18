@@ -426,7 +426,7 @@ namespace Dhs5.ASUI
 
         protected virtual void DoStateTransition(bool instant)
         {
-            if (!gameObject.activeInHierarchy)
+            if (!gameObject.activeInHierarchy || !Transitioner)
                 return;
 
             Transitioner.DoStateTransition(m_currentState, instant);
@@ -434,6 +434,8 @@ namespace Dhs5.ASUI
 
         protected virtual void ClearAllTransitions()
         {
+            if (!Transitioner) return;
+
             Transitioner.ClearTransitions();
         }
 
@@ -591,7 +593,8 @@ namespace Dhs5.ASUI
 
         public void Select()
         {
-            EventSystemUtility.SetSelection(gameObject);
+            if (!HasSelection)
+                EventSystemUtility.SetSelection(gameObject);
         }
 
         #endregion
@@ -638,9 +641,13 @@ namespace Dhs5.ASUI
 
         protected Selectable m_selectable;
 
+        private string[] m_PropertyPathToExcludeForChildClasses;
+
+        protected SerializedProperty p_script;
         protected SerializedProperty p_interactable;
         protected SerializedProperty p_transitioner;
         protected SerializedProperty p_currentState;
+        protected SerializedProperty p_navigation;
 
         #endregion
 
@@ -649,10 +656,24 @@ namespace Dhs5.ASUI
         private void OnEnable()
         {
             m_selectable = target as Selectable;
+
+            p_script = serializedObject.FindProperty("m_Script");
+            p_interactable = serializedObject.FindProperty("m_interactable");
+            p_transitioner = serializedObject.FindProperty("m_graphicTransitioner");
+            p_currentState = serializedObject.FindProperty("m_currentState");
+            p_navigation = serializedObject.FindProperty("m_navigation");
+
+            m_PropertyPathToExcludeForChildClasses = new string[]
+            {
+                p_script.propertyPath,
+                p_interactable.propertyPath,
+                p_transitioner.propertyPath,
+                p_currentState.propertyPath,
+                p_navigation.propertyPath,
+            };
         }
 
         #endregion
-
 
         #region GUI
 
@@ -673,10 +694,6 @@ namespace Dhs5.ASUI
 
         protected virtual void OnSelectableBaseEditor()
         {
-            p_interactable = serializedObject.FindProperty("m_interactable");
-            p_transitioner = serializedObject.FindProperty("m_graphicTransitioner");
-            p_currentState = serializedObject.FindProperty("m_currentState");
-
             EditorGUILayout.PropertyField(p_interactable);
 
             EditorGUILayout.Space(5f);
@@ -688,7 +705,12 @@ namespace Dhs5.ASUI
             EditorGUI.EndDisabledGroup();
         }
 
-        protected virtual void OnChildGUI() { }
+        protected virtual void OnChildGUI()
+        {
+            EditorGUILayout.Space(15f);
+            EditorGUILayout.LabelField(serializedObject.targetObject.GetType().Name, EditorStyles.boldLabel);
+            DrawPropertiesExcluding(serializedObject, m_PropertyPathToExcludeForChildClasses);
+        }
 
         #endregion
     }

@@ -23,16 +23,18 @@ namespace Dhs5.ASUI
 
         public static void SetSelection(GameObject go)
         {
-            if (CheckForEventSystem(out EventSystem eventSystem) && eventSystem.alreadySelecting)
+            if (CheckForEventSystem(out EventSystem eventSystem) && !eventSystem.alreadySelecting)
             {
                 eventSystem.SetSelectedGameObject(go);
+                return;
             }
         }
         public static void SetSelection(GameObject go, BaseEventData data)
         {
-            if (CheckForEventSystem(out EventSystem eventSystem) && eventSystem.alreadySelecting)
+            if (CheckForEventSystem(out EventSystem eventSystem) && !eventSystem.alreadySelecting)
             {
                 eventSystem.SetSelectedGameObject(go, data);
+                return;
             }
         }
         public static bool IsSelection(GameObject go)
