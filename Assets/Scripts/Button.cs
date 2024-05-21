@@ -10,12 +10,6 @@ namespace Dhs5.ASUI
     public class Button : Selectable,
         IPointerClickHandler, ISubmitHandler
     {
-        #region Global Members
-
-        [SerializeField] private bool m_selectAfterClick = false;
-
-        #endregion
-
         #region Events
 
         public event Action<Button> Clicked;
@@ -24,37 +18,26 @@ namespace Dhs5.ASUI
 
         #region Behaviour
 
-        private bool Click(bool simulate)
+        private void Click(bool simulate)
         {
             if (IsActive() && IsInteractable())
             {
                 Clicked?.Invoke(this);
                 if (simulate)
                 {
-                    if (m_selectAfterClick)
-                        SimulateClick(Select);
-                    else
-                        SimulateClick();
+                    SimulateClick();
                 }
-                else if (m_selectAfterClick)
-                {
-                    Select();
-                }
-
-                return true;
             }
-            return false;
         }
 
         private Tween clickSimulationTween;
-        protected virtual void SimulateClick(Action onComplete = null)
+        protected virtual void SimulateClick()
         {
             clickSimulationTween.Kill();
             SetCurrentState(State.PRESSED, false);
             DOVirtual.DelayedCall(0.1f, () => 
             {
                 SetCurrentState(State.NORMAL, false);
-                onComplete?.Invoke();
             });
         }
 

@@ -79,6 +79,17 @@ namespace Dhs5.ASUI
                 }
             }
         }
+        public bool SelectOnPointerDown
+        {
+            get => m_selectOnPointerDown;
+            set
+            {
+                if (m_selectOnPointerDown != value)
+                {
+                    m_selectOnPointerDown = value;
+                }
+            }
+        }
 
         public State ActualState
         {
@@ -123,6 +134,8 @@ namespace Dhs5.ASUI
         [SerializeField] private GraphicTransitioner m_graphicTransitioner;
 
         [SerializeField] private State m_currentState;
+
+        [SerializeField] private bool m_selectOnPointerDown = false;
 
         #endregion
 
@@ -329,7 +342,7 @@ namespace Dhs5.ASUI
 
             PointerDowned?.Invoke(this);
 
-            if (IsInteractable())
+            if (m_selectOnPointerDown && IsInteractable())
             {
                 EventSystemUtility.SetSelection(gameObject, eventData);
             }
@@ -648,6 +661,7 @@ namespace Dhs5.ASUI
         protected SerializedProperty p_transitioner;
         protected SerializedProperty p_currentState;
         protected SerializedProperty p_navigation;
+        protected SerializedProperty p_selectOnPointerDown;
 
         #endregion
 
@@ -662,6 +676,7 @@ namespace Dhs5.ASUI
             p_transitioner = serializedObject.FindProperty("m_graphicTransitioner");
             p_currentState = serializedObject.FindProperty("m_currentState");
             p_navigation = serializedObject.FindProperty("m_navigation");
+            p_selectOnPointerDown = serializedObject.FindProperty("m_selectOnPointerDown");
 
             m_PropertyPathToExcludeForChildClasses = new string[]
             {
@@ -670,6 +685,7 @@ namespace Dhs5.ASUI
                 p_transitioner.propertyPath,
                 p_currentState.propertyPath,
                 p_navigation.propertyPath,
+                p_selectOnPointerDown.propertyPath,
             };
         }
 
@@ -695,6 +711,7 @@ namespace Dhs5.ASUI
         protected virtual void OnSelectableBaseEditor()
         {
             EditorGUILayout.PropertyField(p_interactable);
+            EditorGUILayout.PropertyField(p_selectOnPointerDown);
 
             EditorGUILayout.Space(5f);
 
