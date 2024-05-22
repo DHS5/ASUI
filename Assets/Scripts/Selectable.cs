@@ -667,7 +667,7 @@ namespace Dhs5.ASUI
 
         #region Core Behaviour
 
-        private void OnEnable()
+        protected virtual void OnEnable()
         {
             m_selectable = target as Selectable;
 

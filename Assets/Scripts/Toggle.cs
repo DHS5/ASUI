@@ -3,6 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Dhs5.ASUI;
+using Unity.VisualScripting.YamlDotNet.Core.Tokens;
+
+
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Dhs5.ASUI
 {
@@ -31,6 +39,10 @@ namespace Dhs5.ASUI
         [SerializeField] private UnityEngine.UI.Graphic m_offGraphic;
         [SerializeField] private HidingMethod m_offGraphicHidingMethod;
 
+        [Space(10f)]
+
+        [SerializeField] private ToggleGroup m_group;
+
         public bool IsOn
         {
             get => m_isOn;
@@ -40,6 +52,17 @@ namespace Dhs5.ASUI
             }
         }
 
+        public ToggleGroup Group
+        {
+            get => m_group;
+            set
+            {
+                UnregisterToGroup();
+                m_group = value;
+                RegisterToGroup();
+            }
+        }
+            
         #endregion
 
         #region Events
@@ -56,6 +79,13 @@ namespace Dhs5.ASUI
             base.OnEnable();
 
             SetGraphicState();
+            RegisterToGroup();
+        }
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+
+            UnregisterToGroup();
         }
 
         #endregion
@@ -71,14 +101,16 @@ namespace Dhs5.ASUI
             IsOn = !IsOn;
         }
 
-        public virtual void Set(bool value, bool notify)
+        public virtual void Set(bool value, bool callback)
         {
             if (m_isOn == value) return;
+            if (!value && !CanBeSwitchedOff()) return;
 
             m_isOn = value;
+            NotifyGroup(callback);
 
             SetGraphicState();
-            if (notify) ValueChanged?.Invoke(this, m_isOn);
+            if (callback) ValueChanged?.Invoke(this, m_isOn);
         }
 
         #endregion
@@ -135,6 +167,47 @@ namespace Dhs5.ASUI
 
         #region Group
 
+        private void RegisterToGroup()
+        {
+            if (m_group != null && IsActive())
+            {
+                m_group.Register(this);
+            }
+        }
+        private void UnregisterToGroup()
+        {
+            if (m_group != null)
+            {
+                m_group.Unregister(this);
+            }
+        }
+
+        private bool CanBeSwitchedOff()
+        {
+            return m_group == null || !m_group.IsActive() || m_group.CanSwitchOff(this);
+        }
+
+        private void NotifyGroup(bool callback)
+        {
+            if (m_group != null && m_group.IsActive())
+                m_group.OnToggleValueChanged(this, m_isOn, callback);
+        }
+
+#if UNITY_EDITOR
+
+        private void EnsureGroupState()
+        {
+            if (m_group != null && m_group.IsActive())
+            {
+                if (IsActive()) RegisterToGroup();
+                else UnregisterToGroup();
+
+                m_group.EnsureValidState();
+            }
+        }
+
+#endif
+
         #endregion
 
         #region Interfaces
@@ -164,10 +237,63 @@ namespace Dhs5.ASUI
 
             ClearGraphicState();
             SetGraphicState();
+            EnsureGroupState();
         }
 
 #endif
 
         #endregion
     }
+
+#if UNITY_EDITOR
+
+    [CustomEditor(typeof(Toggle))]
+    public class ToggleEditor : SelectableEditor
+    {
+        protected Toggle m_toggle;
+
+        SerializedProperty p_isOn;
+        SerializedProperty p_onGraphic;
+        SerializedProperty p_onGraphicHidingMethod;
+        SerializedProperty p_offGraphic;
+        SerializedProperty p_offGraphicHidingMethod;
+        SerializedProperty p_group;
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            m_toggle = (Toggle)target;
+
+            p_isOn = serializedObject.FindProperty("m_isOn");
+            p_onGraphic = serializedObject.FindProperty("m_onGraphic");
+            p_onGraphicHidingMethod = serializedObject.FindProperty("m_onGraphicHidingMethod");
+            p_offGraphic = serializedObject.FindProperty("m_offGraphic");
+            p_offGraphicHidingMethod = serializedObject.FindProperty("m_offGraphicHidingMethod");
+            p_group = serializedObject.FindProperty("m_group");
+        }
+
+        protected override void OnChildGUI()
+        {
+            EditorGUILayout.Space(10f);
+            EditorGUILayout.LabelField("Toggle", EditorStyles.boldLabel);
+
+            Rect rect = EditorGUILayout.GetControlRect(false, 20f);
+            float labelWidth = EditorGUIUtility.labelWidth;
+            EditorGUI.LabelField(new Rect(rect.x, rect.y, labelWidth, rect.height), p_isOn.boolValue ? "ON" : "OFF");
+            if (GUI.Button(new Rect(rect.x + labelWidth, rect.y, rect.width - labelWidth, rect.height), "Switch"))
+            {
+                m_toggle.IsOn = !m_toggle.IsOn;
+            }
+
+            EditorGUILayout.PropertyField(p_onGraphic);
+            EditorGUILayout.PropertyField(p_onGraphicHidingMethod, new GUIContent("Hiding Method"));
+            EditorGUILayout.PropertyField(p_offGraphic);
+            EditorGUILayout.PropertyField(p_offGraphicHidingMethod, new GUIContent("Hiding Method"));
+
+            EditorGUILayout.PropertyField(p_group);
+        }
+    }
+
+#endif
 }
