@@ -270,7 +270,7 @@ namespace Dhs5.ASUI
         private void DoScaleTransition(RectTransform target, State state, bool instant)
         {
             scaleTween.Kill();
-            if (instant) target.localScale = scaleState[state];
+            if (instant || scaleState.duration == 0f) target.localScale = scaleState[state];
             else
             {
                 scaleTween = target.DOScale(scaleState[state], scaleState.duration).SetEase(scaleState.ease);
@@ -286,7 +286,7 @@ namespace Dhs5.ASUI
         private void DoPositionTransition(RectTransform target, State state, bool instant)
         {
             positionTween.Kill();
-            if (instant) target.anchoredPosition = positionState[state];
+            if (instant || positionState.duration == 0f) target.anchoredPosition = positionState[state];
             else
             {
                 positionTween = target.DOAnchorPos(positionState[state], positionState.duration).SetEase(positionState.ease);
@@ -302,7 +302,7 @@ namespace Dhs5.ASUI
         private void DoColorTransition(Graphic target, State state, bool instant)
         {
             colorTween.Kill();
-            if (instant) target.color = colorState[state];
+            if (instant || colorState.duration == 0f) target.color = colorState[state];
             else
             {
                 colorTween = target.DOColor(colorState[state], colorState.duration).SetEase(colorState.ease);
@@ -324,7 +324,7 @@ namespace Dhs5.ASUI
         private void DoSizeTransition(TextMeshProUGUI target, State state, bool instant)
         {
             sizeTween.Kill();
-            if (instant) target.fontSize = sizeState[state];
+            if (instant || sizeState.duration == 0f) target.fontSize = sizeState[state];
             else
             {
                 sizeTween = DOTween.To(() => target.fontSize, x => target.fontSize = x, sizeState[state], sizeState.duration).SetEase(sizeState.ease);
