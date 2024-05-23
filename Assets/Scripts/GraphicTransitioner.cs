@@ -88,12 +88,33 @@ namespace Dhs5.ASUI
         #region Structs
 
         [Serializable]
+        public struct GraphicInstantState<T>
+        {
+            public T initialValue;
+            public T[] states;
+
+            public T this[State state]
+            {
+                get
+                {
+                    if (states == null) return initialValue;
+
+                    int index = (int)state;
+                    if (index >= states.Length) return initialValue;
+
+                    return states[index];
+                }
+            }
+        }
+        
+        [Serializable]
         public struct GraphicState<T>
         {
             public T initialValue;
             public T[] states;
 
             [Min(0f)] public float duration;
+            public Ease ease;
 
             public T this[State state]
             {
@@ -153,9 +174,9 @@ namespace Dhs5.ASUI
         [SerializeField] private GraphicState<Vector2> scaleState;
         [SerializeField] private GraphicState<Vector2> positionState;
         [SerializeField] private GraphicState<Color> colorState;
-        [SerializeField] private GraphicState<Sprite> spriteState;
+        [SerializeField] private GraphicInstantState<Sprite> spriteState;
         [SerializeField] private GraphicState<float> sizeState;
-        [SerializeField] private GraphicState<FontStyles> styleState;
+        [SerializeField] private GraphicInstantState<FontStyles> styleState;
 
         #endregion
 
@@ -250,7 +271,14 @@ namespace Dhs5.ASUI
         {
             scaleTween.Kill();
             if (instant) target.localScale = scaleState[state];
-            else scaleTween = target.DOScale(scaleState[state], scaleState.duration);
+            else
+            {
+                scaleTween = target.DOScale(scaleState[state], scaleState.duration).SetEase(scaleState.ease);
+                if (DOTween.defaultAutoPlay == AutoPlay.None || DOTween.defaultAutoPlay == AutoPlay.AutoPlaySequences)
+                {
+                    scaleTween.Play();
+                }
+            }
         }
 
         // --- POSITION ---
@@ -259,7 +287,14 @@ namespace Dhs5.ASUI
         {
             positionTween.Kill();
             if (instant) target.anchoredPosition = positionState[state];
-            else positionTween = target.DOAnchorPos(positionState[state], positionState.duration);
+            else
+            {
+                positionTween = target.DOAnchorPos(positionState[state], positionState.duration).SetEase(positionState.ease);
+                if (DOTween.defaultAutoPlay == AutoPlay.None || DOTween.defaultAutoPlay == AutoPlay.AutoPlaySequences)
+                {
+                    positionTween.Play();
+                }
+            }
         }
 
         // --- COLOR ---
@@ -268,7 +303,14 @@ namespace Dhs5.ASUI
         {
             colorTween.Kill();
             if (instant) target.color = colorState[state];
-            colorTween = target.DOColor(colorState[state], colorState.duration);
+            else
+            {
+                colorTween = target.DOColor(colorState[state], colorState.duration).SetEase(colorState.ease);
+                if (DOTween.defaultAutoPlay == AutoPlay.None || DOTween.defaultAutoPlay == AutoPlay.AutoPlaySequences)
+                {
+                    colorTween.Play();
+                }
+            }
         }
 
         // --- SPRITE ---
@@ -283,7 +325,14 @@ namespace Dhs5.ASUI
         {
             sizeTween.Kill();
             if (instant) target.fontSize = sizeState[state];
-            sizeTween = DOTween.To(() => target.fontSize, x => target.fontSize = x, sizeState[state], sizeState.duration);
+            else
+            {
+                sizeTween = DOTween.To(() => target.fontSize, x => target.fontSize = x, sizeState[state], sizeState.duration).SetEase(sizeState.ease);
+                if (DOTween.defaultAutoPlay == AutoPlay.None || DOTween.defaultAutoPlay == AutoPlay.AutoPlaySequences)
+                {
+                    sizeTween.Play();
+                }
+            }
         }
         
         // --- SIZE ---
@@ -304,8 +353,8 @@ namespace Dhs5.ASUI
 
     #region Graphic State Drawer
 
-    [CustomPropertyDrawer(typeof(GraphicTransition.GraphicState<>))]
-    public class GraphicStateDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(GraphicTransition.GraphicInstantState<>))]
+    public class GraphicInstantStateDrawer : PropertyDrawer
     {
         SerializedProperty p_states;
         SerializedProperty p_initialValue;
@@ -353,11 +402,13 @@ namespace Dhs5.ASUI
                 }
                 rect.y += 10f;
 
-                EditorGUI.PropertyField(rect, property.FindPropertyRelative("duration"));
+                OnChildGUI(rect, property);
             }
 
             EditorGUI.EndProperty();
         }
+
+        protected virtual void OnChildGUI(Rect rect, SerializedProperty property) { }
 
         #region Height
 
@@ -366,7 +417,7 @@ namespace Dhs5.ASUI
             return property.isExpanded ? ExpandedHeight() : 20f;
         }
 
-        protected float ExpandedHeight() => 20f + Selectable.STATE_COUNT * 20f + 30f + 20f;
+        protected virtual float ExpandedHeight() => 20f + Selectable.STATE_COUNT * 20f + 20f;
 
         #endregion
 
@@ -416,6 +467,23 @@ namespace Dhs5.ASUI
         }
 
         #endregion
+    }
+
+    [CustomPropertyDrawer(typeof(GraphicTransition.GraphicState<>))]
+    public class GraphicStateDrawer : GraphicInstantStateDrawer
+    {
+        protected override void OnChildGUI(Rect rect, SerializedProperty property)
+        {
+            base.OnChildGUI(rect, property);
+
+            EditorGUI.PropertyField(new Rect(rect.x, rect.y, 2 * rect.width / 3, rect.height), property.FindPropertyRelative("duration"));
+            EditorGUI.PropertyField(new Rect(rect.x +  2 * rect.width / 3 + 2f, rect.y, rect.width / 3 - 2f, rect.height), property.FindPropertyRelative("ease"), GUIContent.none);
+        }
+
+        protected override float ExpandedHeight()
+        {
+            return base.ExpandedHeight() + 30f;
+        }
     }
 
     #endregion

@@ -1715,10 +1715,12 @@ MonoBehaviour:
       initialValue: {x: 1, y: 1}
       states: []
       duration: 0
+      ease: 0
     positionState:
       initialValue: {x: 0, y: 0}
       states: []
       duration: 0
+      ease: 0
     colorState:
       initialValue: {r: 1, g: 1, b: 1, a: 1}
       states:
@@ -1730,18 +1732,18 @@ MonoBehaviour:
       - {r: 0.5377358, g: 0.5377358, b: 0.5377358, a: 1}
       - {r: 0.6415094, g: 0.6415094, b: 0.6415094, a: 1}
       duration: 0
+      ease: 0
     spriteState:
       initialValue: {fileID: 0}
       states: []
-      duration: 0
     sizeState:
       initialValue: 0
       states: []
       duration: 0
+      ease: 0
     styleState:
       initialValue: 0
       states: 
-      duration: 0
   - obj: {fileID: 787109211}
     rectTransform: {fileID: 0}
     image: {fileID: 0}
@@ -1753,18 +1755,20 @@ MonoBehaviour:
       initialValue: {x: 1, y: 1}
       states: []
       duration: 0
+      ease: 0
     positionState:
       initialValue: {x: 0, y: 0}
       states: []
       duration: 0
+      ease: 0
     colorState:
       initialValue: {r: 0, g: 0, b: 0, a: 1}
       states: []
       duration: 0
+      ease: 0
     spriteState:
       initialValue: {fileID: 0}
       states: []
-      duration: 0
     sizeState:
       initialValue: 36
       states:
@@ -1775,11 +1779,11 @@ MonoBehaviour:
       - 62
       - 36
       - 36
-      duration: 0
+      duration: 1
+      ease: 0
     styleState:
       initialValue: 0
-      states: 
-      duration: 0
+      states: 00000000000000000000000000000000000000000000000000000000
 --- !u!114 &1727213628
 MonoBehaviour:
   m_ObjectHideFlags: 0
