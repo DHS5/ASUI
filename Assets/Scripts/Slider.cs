@@ -35,6 +35,7 @@ namespace Dhs5.ASUI
 
         [SerializeField] private bool m_wholeNumbers;
         [SerializeField] private Direction m_direction;
+        [SerializeField] private bool m_warpOnClick;
 
         [SerializeField] private RectTransform m_fillContainer;
         [SerializeField] private RectTransform m_fillRect;
@@ -111,6 +112,17 @@ namespace Dhs5.ASUI
                 if (m_wholeNumbers != value)
                 {
                     m_wholeNumbers = value;
+                }
+            }
+        }
+        public bool WarpOnClick
+        {
+            get => m_warpOnClick;
+            set
+            {
+                if (m_warpOnClick != value)
+                {
+                    m_warpOnClick = value;
                 }
             }
         }
@@ -196,6 +208,7 @@ namespace Dhs5.ASUI
 
         #endregion
 
+
         #region Visuals
 
         protected virtual void UpdateVisuals()
@@ -251,11 +264,36 @@ namespace Dhs5.ASUI
 
         #endregion
 
+        #region Drag Behaviour
+
+        private void UpdateDrag(PointerEventData eventData)
+        {
+            RectTransform rectTransform = m_handleContainer ?? m_fillContainer;
+            int axis = (int)GetAxis();
+            if (rectTransform != null && rectTransform.rect.size[axis] > 0f)
+            {
+                Vector2 position = eventData.position;
+                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, position, eventData.pressEventCamera, out var localPoint))
+                {
+                    localPoint -= rectTransform.rect.position;
+                    float num = Mathf.Clamp01((localPoint - m_offset)[axis] / rectTransform.rect.size[axis]);
+                    NormalizedValue = (Reversed ? (1f - num) : num);
+                }
+            }
+        }
+
+        #endregion
+
         #region Interfaces
+
+        private Vector2 m_offset;
 
         public void OnDrag(PointerEventData eventData)
         {
-            
+            if (CanDrag(eventData))
+            {
+                UpdateDrag(eventData);
+            }
         }
 
         public override void OnPointerDown(PointerEventData eventData)
@@ -264,7 +302,18 @@ namespace Dhs5.ASUI
 
             base.OnPointerDown(eventData);
 
-
+            m_offset = Vector2.zero;
+            if (m_handleContainer != null && RectTransformUtility.RectangleContainsScreenPoint(m_handle, eventData.pointerPressRaycast.screenPosition, eventData.enterEventCamera))
+            {
+                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(m_handle, eventData.pointerPressRaycast.screenPosition, eventData.pressEventCamera, out var localPoint))
+                {
+                    m_offset = localPoint;
+                }
+            }
+            else if (WarpOnClick)
+            {
+                UpdateDrag(eventData);
+            }
         }
 
         public virtual void OnInitializePotentialDrag(PointerEventData eventData)

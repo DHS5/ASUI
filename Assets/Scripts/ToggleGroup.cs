@@ -25,7 +25,7 @@ namespace Dhs5.ASUI
         public bool AllowSwitchOff
         {
             get => m_allowSwitchOff;
-            //set => m_allowSwitchOff = value;
+            set => m_allowSwitchOff = value;
         }
 
         public Toggle ActiveToggle
@@ -40,11 +40,11 @@ namespace Dhs5.ASUI
 
             m_activeToggle = toggle;
 
-            if (m_activeToggle != null)
-                m_activeToggle.Set(true, callback);
-
             if (former != null && former.Group == this)
                 former.Set(false, callback);
+
+            if (m_activeToggle != null)
+                m_activeToggle.Set(true, callback);
 
             ActiveToggleChanged?.Invoke(m_activeToggle);
         }
