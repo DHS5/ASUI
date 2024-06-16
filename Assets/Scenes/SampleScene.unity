@@ -1908,7 +1908,7 @@ MonoBehaviour:
   m_maxValue: 8
   m_wholeNumbers: 0
   m_direction: 0
-  m_warpOnClick: 0
+  m_warpOnClick: 1
   m_fillContainer: {fileID: 1038031621}
   m_fillRect: {fileID: 1135542625}
   m_fillImage: {fileID: 1135542626}
